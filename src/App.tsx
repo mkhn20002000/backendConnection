@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import apiClient, { CanceledError } from "./services/api-client";
+import { CanceledError } from "./services/api-client";
 import userService, { User } from "./services/user-service";
-
-
 
 function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -12,8 +10,9 @@ function App() {
 
   useEffect(() => {
     setLoading(true);
-    const {request, cancel} = userService.getAllUsers()
-    request.then((res) => {
+    const { request, cancel } = userService.getAllUsers();
+    request
+      .then((res) => {
         setUsers(res.data);
         setLoading(false);
       })
@@ -29,20 +28,18 @@ function App() {
   const deleteUser = (user: User) => {
     const originalUsers = [...users];
     setUsers(users.filter((u) => u.id !== user.id));
-    apiClient
-      .delete("/users/" + user.id)
-      .catch((err) => {
-        setError(err.message);
-        setUsers(originalUsers);
-      });
+    userService.deleteUser(user.id).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers);
+    });
   };
 
   const addUser = () => {
     const originalUsers = [...users];
     const newUser = { id: 0, name: "Manoochehr Khatami" };
     setUsers([newUser, ...users]);
-    apiClient
-      .post("/users/", newUser)
+    userService
+      .createUser(newUser)
       .then(({ data: savedUser }) => setUsers([savedUser, ...users]))
       .catch((err) => {
         setError(err.message);
@@ -54,15 +51,10 @@ function App() {
     const originalUsers = [...users];
     const updatedUser = { ...user, name: user.name + " IS UPDATED" };
     setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
-    apiClient
-      .patch(
-        "/users/" + user.id,
-        updatedUser
-      )
-      .catch((err) => {
-        setError(err.message);
-        setUsers(originalUsers);
-      });
+    userService.updateUser(updatedUser).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers);
+    });
   };
   return (
     <>
