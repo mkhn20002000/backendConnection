@@ -1,12 +1,10 @@
-import axios, { CanceledError } from "axios";
-
+import axios, {CanceledError} from 'axios'
 
 export default axios.create({
     baseURL: 'https://jsonplaceholder.typicode.com',
-    // headers: {
-    //     'api-keys' : '...'
+    // headers:{
+    //     'api-key' : '...'
     // }
-
 })
 
 export {CanceledError}

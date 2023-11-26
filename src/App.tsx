@@ -1,34 +1,14 @@
-import { useEffect, useState } from "react";
 import "./App.css";
-import { CanceledError } from "./services/api-client";
 import userService, { User } from "./services/user-service";
+import useUsers from "./hooks/useUsers";
 
 function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState("");
-  const [isLoading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    const { request, cancel } = userService.getAllUsers();
-    request
-      .then((res) => {
-        setUsers(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err instanceof CanceledError) return;
-        setError(err.message);
-        setLoading(false);
-      });
-
-    return () => cancel();
-  }, []);
+  const { users, error, isLoading, setUsers, setError } = useUsers();
 
   const deleteUser = (user: User) => {
     const originalUsers = [...users];
-    setUsers(users.filter((u) => u.id !== user.id));
-    userService.deleteUser(user.id).catch((err) => {
+    setUsers(users.filter((item) => item.id !== user.id));
+    userService.delete(user.id).catch((err) => {
       setError(err.message);
       setUsers(originalUsers);
     });
@@ -38,9 +18,10 @@ function App() {
     const originalUsers = [...users];
     const newUser = { id: 0, name: "Manoochehr Khatami" };
     setUsers([newUser, ...users]);
+
     userService
-      .createUser(newUser)
-      .then(({ data: savedUser }) => setUsers([savedUser, ...users]))
+      .create(newUser)
+      .then((res) => setUsers([res.data, ...users]))
       .catch((err) => {
         setError(err.message);
         setUsers(originalUsers);
@@ -49,9 +30,10 @@ function App() {
 
   const updateUser = (user: User) => {
     const originalUsers = [...users];
-    const updatedUser = { ...user, name: user.name + " IS UPDATED" };
+    const updatedUser = { ...user, name: user.name + "!" };
     setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
-    userService.updateUser(updatedUser).catch((err) => {
+
+    userService.update(updatedUser).catch((err) => {
       setError(err.message);
       setUsers(originalUsers);
     });
@@ -59,9 +41,9 @@ function App() {
   return (
     <>
       {error && <p className="text-danger">{error}</p>}
-      {isLoading && <div className="spinner-border text-warning"></div>}
+      {isLoading && <div className="spinner-border"></div>}
       <button className="btn btn-primary mb-3" onClick={addUser}>
-        Add User
+        Add
       </button>
       <ul className="list-group">
         {users.map((user) => (
@@ -78,8 +60,8 @@ function App() {
                 UPDATE
               </button>
               <button
-                className="btn btn-outline-danger"
                 onClick={() => deleteUser(user)}
+                className="btn btn-outline-danger"
               >
                 DELETE
               </button>
@@ -92,3 +74,4 @@ function App() {
 }
 
 export default App;
+// 'https://jsonplaceholder.typicode.com/users'
